@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>文件打包系统</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<!-- jQuery 3 -->
+	<script src="js/jquery-1.11.3.min.js"></script>
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="./css/font.css">
+	<link rel="stylesheet" href="./css/xadmin.css">
+    <script src="./lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="./js/xadmin.js"></script>
+</head>
+<body>
+    <div class="login-logo"><h1>文件打包系统</h1></div>
+    <div class="login-box">
+        <div class="layui-form layui-form-pane">
+            <h3>登录你的帐号</h3>
+            <label class="login-title" for="username">帐号</label>
+            <div class="layui-form-item">
+                <label class="layui-form-label login-form"><i class="iconfont">&#xe6b8;</i></label>
+                <div class="layui-input-inline login-inline">
+                  <input type="text" id="username" lay-verify="required" placeholder="请输入你的帐号" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <label class="login-title" for="password">密码</label>
+            <div class="layui-form-item">
+                <label class="layui-form-label login-form"><i class="iconfont">&#xe82b;</i></label>
+                <div class="layui-input-inline login-inline">
+                  <input type="password" id="password" lay-verify="required" placeholder="请输入你的密码" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="form-actions">
+           		<button class="btn btn-warning pull-right" id="register">注册</button> 
+                <button class="btn btn-warning pull-right" lay-submit lay-filter="login"  type="submit">登录</button> 
+                <div class="forgot"><a id="forgot1">忘记密码?</a></div>     
+            </div>
+        </div>
+    </div>
+    <script>
+        $(function() {
+        	// 给注册按钮添加点击事件
+        	$("#register").click(function(){
+        		doRegister();
+        	})
+        	// 给忘记密码添加点击事件
+        	$("#forgot1").click(function(){
+        		doSearchPassword();
+        	})
+            layui.use('form', function(){
+              var form = layui.form();
+              //监听提交
+              form.on('submit(login)', function(data){
+            	  // 获取输入框中的内容
+            	  var username = $("#username").val();
+            	  var password = $("#password").val();
+            	  var url = "doLogin.do";
+            	  var params = {
+            			  "username":username,
+            			  "password":password
+            	  }
+            	  $.post(url,params,function(result){
+            		  if(result.state==1){
+            			  alert("登录成功");
+            			  location.href="indexUI.do?t="+Math.random();
+            		  }else{
+            			  alert(result.message);
+            		  }
+            	  })
+              });
+            });
+        })
+        function doRegister(){
+        	location.href="registerUI.do";
+        }
+        function doSearchPassword(){
+        	location.href="searchPassword.do";
+        }
+    </script>
+</body>
+</html>

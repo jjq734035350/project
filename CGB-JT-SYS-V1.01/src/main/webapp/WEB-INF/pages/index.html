@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>文件打包系统</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<!-- jQuery 3 -->
+	<script src="js/jquery-1.11.3.min.js"></script>
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="./css/font.css">
+	<link rel="stylesheet" href="./css/xadmin.css">
+    <script src="./lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="./js/xadmin.js"></script>
+</head>
+<body>
+    <!-- 顶部开始 -->
+    <div class="container">
+        <div class="logo"><a id="mainPage" href="">文件打包系统</a></div>
+        <div class="open-nav"><i class="iconfont">&#xe699;</i></div>
+        <ul class="layui-nav right" lay-filter="">
+          <li class="layui-nav-item">
+            <a id="getUsername"></a>
+            <dl class="layui-nav-child"> <!-- 二级菜单 -->
+              <dd><a id="update_password">修改密码</a></dd>
+              <dd><a id="switch">切换帐号</a></dd>
+            </dl>
+          </li>
+        </ul>
+    </div>
+    <!-- 顶部结束 -->
+    <!-- 中部开始 -->
+    <div class="wrapper">
+        <!-- 左侧菜单开始 -->
+        <div class="left-nav" style="height:590px">
+          <div id="side-nav">
+            <ul id="nav">
+                <li class="list">
+                    <a id="homepage">
+                        主页
+                    </a>
+                </li>
+                <li class="list">
+                    <a id="linuxList">
+                        服务器列表
+                    </a>
+                </li>
+                <li class="list">
+                    <a id="tar_record">
+                       打包记录
+                    </a>
+                </li>
+          </div>
+        </div>
+        <!-- 左侧菜单结束 -->
+        <!-- 右侧主体开始 -->
+        <div class="page-content" style="height:550px;">
+          <div class="content" style=" width: 1000px; border: 0px solid purple; overflow-y: hidden; overflow-x: auto;">
+           </div>
+          </div>
+        </div>
+        <!-- 右侧主体结束 -->
+    <!-- 中部结束 -->
+ <script>
+	$().ready(function(){
+		// 给修改密码添加点击事件
+		$("#update_password").click(function(){
+			updatePassword();
+		})
+		// 给页面初始化用户名
+		initUsername();
+		// 给切换用户添加点击事件
+		$("#switch").click(function(){
+			doSwitchUser();
+		})
+		$("#mainPage").click(function(){
+			location.reload();
+		})
+		// 给打包记录添加点击事件
+		$("#tar_record").click(function(){
+			tarRecordList();
+		})
+		// 加载各服务器信息
+		doFindLinuxServers();
+		// 给返回主页添加点击事件
+		$("#homepage").click(function(){
+			returnHomepage();
+		})
+		// 给服务器列表添加点击事件
+		$("#linuxList").click(function(){
+			doLinuxList();
+		})
+	});
+	/* 给页面初始化用户名 */
+	function initUsername(){
+		var url = "getUsername.do";
+		$.getJSON(url,function(result){
+			if(result.state==1){
+				$("#getUsername").html(result.data);
+			}
+		})
+	}
+	// 修改密码
+	function updatePassword(){
+		$(".page-content").load("updatePassword.do", function(result){
+		})
+	}
+	function doFindLinuxServers(){
+		var url = "linuxServerManage/doFindLinuxs.do";
+		$.getJSON(url,function(result){
+			if(result.state==1){
+				console.log(result.data);
+				$(".page-content").data("data",result.data);
+				// 获取服务器的唯一标识
+				var linuxServers = result.data;
+				// 将服务器唯一标识添加到服务器列表下面
+				doAddLinuxUnique(linuxServers);
+			}
+		})
+	}
+	function doAddLinuxUnique(linuxServers){
+		// 获取ul标签
+		var div = $(".content");
+		for(i in linuxServers){
+			// 遍历获取每一个Linux服务器的唯一标识
+			var linuxUnique = linuxServers[i].anothername;
+			var blockquote = "<blockquote class='layui-elem-quote linuxServer' style=' width: 150px; height:150px; border: 0px solid green; display: inline-block; margin: 1ex;text-align:center;line-height:150px'>"+linuxUnique+"</blockquote>";
+			div.append(blockquote);
+		}
+		var addLinux =  "<blockquote class='layui-elem-quote linuxServer' style='width: 150px; height:150px; border: 0px solid green; display: inline-block; margin: 1ex;text-align:center;line-height:150px'><a>请添加</a></blockquote>";
+		div.append(addLinux);
+	 	$(".linuxServer").each(function(){
+			$(this).click(function(){
+			var data = $(this).text();
+				// 如果点击的是“请添加”，那么跳转添加服务器页面
+				if(data=="请添加"){
+					$(".page-content").load("linuxServerManage/addLinux.do",function(){
+					});
+				}else{
+					// 根据别称获取服务器信息
+					doFindLinuxByAnothername(data);
+				}
+			})
+		}) 
+	}
+	/* 切换用户 */
+	function doSwitchUser(){
+		location.href = "loginUI.do";
+	}
+	// 点击打包记录执行该方法
+	function tarRecordList(){
+		 $(".page-content").load("tarRecordUI.do",function(){
+		}); 
+	}
+	// 连接linux
+	function doFindLinuxByAnothername(data){
+		var url = "linuxServerManage/doFindLinuxByAnotherUsername.do";
+		var params = {
+				"anothername":data
+		}
+		$.post(url,params,function(result){
+			if(result.state==1){
+				// 连接到linux
+				doConToLinux(result.data);
+			}
+		})
+	}
+	function doConToLinux(data){
+		console.log(data);
+		console.log(data.ip);
+		var url = "linux/conToLinux.do";
+		var username = data.username;
+		var password = data.password;
+		var ip = data.ip;
+		var port = data.port;
+		var params = {
+				"username":username,
+				"password":password,
+				"ip":ip,
+				"port":port
+		}
+		$.post(url,params,function(result){
+			if(result.state==1){
+				// 连接成功，跳转文件打包页面
+			alert("连接成功");
+			conToFileTar(data);
+			}else{
+				alert(result.message);
+			}
+		})
+	}
+	// 返回主页
+	function returnHomepage(){
+		// 跳转页面
+		location.href="indexUI.do";
+	}
+	// 展示服务器列表
+	function doLinuxList(){
+		 $(".page-content").load("linuxList.do",function(){
+		}); 
+	}
+	/* 跳转到文件打包页面 */
+	function conToFileTar(data){
+		$(".page-content").data("linuxConecting",data);
+		$(".page-content").load("fileTar.do",function(){});
+	}
+	</script>    
+</body>
+</html>

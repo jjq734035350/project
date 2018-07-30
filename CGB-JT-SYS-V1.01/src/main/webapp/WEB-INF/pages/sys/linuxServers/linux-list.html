@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<body>
+        <!-- 右侧主体开始 -->
+          <div class="content">
+              <xblock>
+              	<div style="display:inline">
+	                <div class="layui-form-item" style="display: inline-block;">
+	                	<input type="text" id="linuxUnique"  placeholder="服务器ip或名称" style="color:#C0C0C0;height:30px">
+	                	<button class="layui-btn" id="search" lay-submit="" lay-filter="sreach"><i class="layui-icon">&#xe615;</i></button>
+			           	  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;	
+			              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;	
+			            <button class="layui-btn" id="btn_add">添加</button>
+			            <button class="layui-btn" id="btn_update">修改</button>
+			            <button class="layui-btn layui-btn-danger" id="btn_del">删除</button>
+		            	<span class="x-right" style="line-height:40px;"></span>
+	            	</div>
+            	</div>
+            </xblock>
+            <table class="layui-table">
+                <thead>
+                    <tr>
+                    <th>
+                    </th>
+                        <th>
+                            服务器名
+                        </th>
+                        <th>
+                            ip地址
+                        </th>
+                        <th>
+                           端口号
+                        </th>
+                        <th>
+                            用户名
+                        </th>
+                        <th>
+         	  密码
+                        </th>
+                        <th>
+         	  创建时间
+                        </th>
+                        <th>
+         	  创建人
+                        </th>
+                    </tr>
+                </thead>
+                <tbody  id="lTbody">
+                </tbody>
+            </table>
+            <!-- 右侧内容框架，更改从这里结束 -->
+              <!-- 引入分页 -->
+            <div id="pageId">
+            </div>
+          </div>
+        </div>
+        <!-- 右侧主体结束 -->
+    <!-- 页面动态效果 -->
+<script>
+	$(function(){
+		// 加载分页底部
+		$("#pageId").load("pageUI.do");
+		// 将服务器列表展示到表格中
+		doGetObjects();
+		// 给添加按钮添加点击事件
+		$("#btn_add").click(function(){
+			doAddLinuxServer();
+		})
+		// 给修改按钮添加点击事件
+		$("#btn_update").click(function(){
+			doUpdateLinuxServer();
+		})
+		// 给删除按钮添加点击事件
+		$("#btn_del").click(function(){
+			doDelLinuxServer();
+		})
+		// 给查询按钮添加点击事件
+		$("#search").click(function(){
+			doSearchLinux();
+		})
+	})
+	/* 查询所有的服务器信息 */
+		function doGetObjects(){
+		 //获取参数信息
+		   var pageCurrent=
+		   $(".black-red").data("pageCurrent");
+		   if(!pageCurrent)pageCurrent=1;
+			 var params = {
+					 pageCurrent:pageCurrent
+			 }
+			 console.log(pageCurrent);
+			   //发送异步请求
+			   $.ajax({
+				   url:"linuxServerManage/doFindPageLinuxs.do",
+				   dataType:"json",
+				   data:params,
+				   success:function(result){
+					 if(result.state==1){
+						 doSetTable(result.data.records);
+					   setPagination(result.data)
+					 }else{
+					   alert(result.message);
+					 }
+				   }
+			   });
+		}
+	/* 设置表格内容 */
+	function doSetTable(data){
+		// 找到tbody元素
+		var tbody = $("#lTbody");
+		// 清空表格内容
+		tbody.empty();
+		// 遍历数据。得到每一行的数据
+		for(i in data){
+			// 新建一行
+			var tr = $("<tr></tr>");
+			// 拼接每一行中所有列的内容
+			var tds = "<td><input type='radio' name='radioId' value='"+data[i].id+"'></td>"+
+					  "<td>"+data[i].anothername+"</td>"+
+					  "<td>"+data[i].ip+"</td>"+
+					  "<td>"+data[i].port+"</td>"+
+					  "<td>"+data[i].username+"</td>"+
+					  "<td>"+data[i].password+"</td>"+
+					  "<td>"+data[i].createdTime+"</td>"+
+					  "<td>"+data[i].createdUser+"</td>";
+			// 将所有列拼接到一行中
+			tr.append(tds);
+			// 向表中添加每一行
+			tbody.append(tr);
+		}
+		// 新建一行
+	}
+	/* 点击添加按钮执行 */
+	function doAddLinuxServer(){
+		// 跳转添加页面
+		 $(".page-content").load("linuxServerManage/addLinux.do",function(){
+		}); 
+	}
+	/* 点击修改按钮执行 */
+	function doUpdateLinuxServer(){
+		// 获取选中用户的id
+		var id = getCheckedId();
+		params = {
+			"id":id
+		}
+		var url = "linuxServerManage/doFindLinuxUserById.do";
+		// 根据id将用户信息查找出来，并初始化在修改页面
+		$.post(url,params,function(result){
+			if(result.state==1){
+				// 将用户信息添加到容器中
+				$(".page-content").data("linux",result.data);
+				// 跳转修改页面
+			 	$(".page-content").load("linuxServerManage/updateLinux.do",function(){
+				});
+			}
+		})
+	}
+	// 获取选中的用户
+	function getCheckedId(){
+		   return $("tbody input[name='radioId']:checked").val();
+	}
+	/* 删除选中用户  */
+	function doDelLinuxServer(){
+		// 获取选中的用户
+		var id = getCheckedId();
+		// 判断是否有此用户
+		var url = "linuxServerManage/doFindLinuxUserById.do";
+		var params = {
+				"id":id
+		}
+		$.post(url,params,function(result){
+			if(result.state==1){
+				// 说明有该用户
+				// 执行删除
+				doDeleteLinux(id);
+			}
+			else{
+				alert("无此用户");
+			}
+		})
+	}
+	/* 执行删除操作 */
+	function doDeleteLinux(id){
+		console.log(id);
+		var url = "linuxServerManage/doDelLinuxUser.do";
+		var params = {
+				"id":id
+		}
+		$.post(url,params,function(result){
+			if(result.state==1){
+				alert("删除成功");
+				// 重新加载页面
+				$(".page-content").load("linuxList.do",function(){});
+			}
+		})
+	}
+	function doSearchLinux(){
+		// 获取输入框中的内容
+		var content = $("#linuxUnique").val();
+		// 根据输入框内容查找linux服务器信息
+		var url = "linuxServerManage/findByAnothername.do";
+		var params = {
+				anothername:content
+		}
+		$.post(url,params,function(result){
+			console.log(result.data);
+			if(result.state==1){
+				// 找到tbody元素
+				var tbody = $("#lTbody");
+				// 清空表格内容
+				tbody.empty();
+				// 将内容添加到表格中
+				var tr = $("<tr></tr>");
+				// 拼接每一行中所有列的内容
+				var tds = "<td><input type='radio' name='radioId' value='"+result.data.id+"'></td>"+
+						  "<td>"+result.data.anothername+"</td>"+
+						  "<td>"+result.data.ip+"</td>"+
+						  "<td>"+result.data.port+"</td>"+
+						  "<td>"+result.data.username+"</td>"+
+						  "<td>"+result.data.password+"</td>"+
+						  "<td>"+result.data.createdTime+"</td>"+
+						  "<td>"+result.data.createdUser+"</td>";
+				// 将所有列拼接到一行中
+				tr.append(tds);
+				// 向表中添加每一行
+				tbody.append(tr);
+			}else{
+				alert("无此服务器");
+			}
+		})
+		
+	}
+</script>
+</body>
+</html>

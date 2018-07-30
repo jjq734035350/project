@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>文件打包系统</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<!-- jQuery 3 -->
+	<script src="js/jquery-1.11.3.min.js"></script>
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="./css/font.css">
+	<link rel="stylesheet" href="./css/xadmin.css">
+    <script src="./lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="./js/xadmin.js"></script>
+</head>
+<body>
+    <div class="login-logo"><h1>文件打包系统-注册</h1></div>
+    <div class="login-box">
+        <div class="layui-form layui-form-pane">
+            <label class="login-title" for="username">帐号</label>
+            <div class="layui-form-item">
+                <label class="layui-form-label login-form"><i class="iconfont">&#xe6b8;</i></label>
+                <div class="layui-input-inline login-inline">
+                  <input type="text" id="username" lay-verify="required" placeholder="请输入你的帐号" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <label class="login-title" for="password">密码</label>
+            <div class="layui-form-item">
+                <label class="layui-form-label login-form"><i class="iconfont">&#xe82b;</i></label>
+                <div class="layui-input-inline login-inline">
+                  <input type="password" id="password" lay-verify="required" placeholder="请输入你的密码" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <label class="login-title" for="password">确认密码</label>
+            <div class="layui-form-item">
+                <label class="layui-form-label login-form"><i class="iconfont">&#xe82b;</i></label>
+                <div class="layui-input-inline login-inline">
+                  <input type="password" id="passwordAgain" lay-verify="required" placeholder="请再次确认密码" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div style="text-align:center">
+                <button class="btn" id="register">确定</button> 
+           		<button class="btn" id="cancel">取消</button> 
+            </div>
+        </div>
+    </div>
+    <script>
+        $(function  () {
+        	// 给按钮添加点击事件
+        	$("#register").click(function(){
+        		doRegister();
+        	})
+        	$("#cancel").click(function(){
+        		doCancel();
+        	})
+        })
+        function doRegister(){
+        	// 获取输入框中的值
+        	var username = $("#username").val();
+        	var password = $("#password").val();
+        	var passwordAgain = $("#passwordAgain").val();
+        	//	如果两次密码不一致请提示
+        	if(username==""||password==""||passwordAgain==""){
+        		alert("用户名或密码不能为空");
+        	}else if(password!=passwordAgain){
+        		alert("两次密码不一致");
+        	}else{
+        		// 验证用户名是否合格
+        		var rex = /^[a-zA-Z][a-zA-Z0-9_]{5,10}$/;
+        		if(!rex.test(username)){
+        			alert("用户名为字母开头,6-11位，不允许特殊字符");
+        		}else{
+        			// 将数据写入数据库
+        		 	var url = "user/doRegister.do";
+        			var params = {
+        					username:username,
+        					password:password
+        			}
+        			$.post(url,params,function(result){
+        				if(result.state==1){
+        					alert(result.message);
+        					window.location.href = "loginUI.do";
+        					// 跳转登录页
+        				}else{
+        					alert(result.message);
+        				}
+        			}) 
+        		}
+        	}
+        }
+        function doCancel(){
+        	// 返回登录界面
+        	window.location.href = "loginUI.do";
+        }
+    </script>
+</body>
+</html>

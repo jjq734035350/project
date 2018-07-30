@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jt.sys.dao.SysLinuxServerManageDao">
+	<!-- 查询所有的Linux服务器信息 -->
+	<select id="findLinuxs" resultType="linuxUser">
+    	select * from linux_user where createdUser=#{currentUsername}
+    </select>
+    <!-- 查询linux服务器的总记录数 -->
+    <select id="getLinuxCounts" resultType="int">
+    	select count(*) from linux_user where createdUser=#{currentUsername}
+    </select>
+    <!-- 查询每页的linux服务器记录 -->
+    <select id="findPageLinuxs" resultType="linuxUser">
+    	select * from linux_user where createdUser=#{username} limit #{startIndex},#{pageSize}
+    </select>
+    <!-- 根据别名查询服务器信息 -->
+    <select id="findLinuxByAnothername" resultType="linuxUser">
+    	select * from linux_user where (anothername=#{anothername} or ip=#{anothername}) and createdUser=#{currentUsername}
+    </select>
+    <!-- 根据id查询服务器信息 -->
+    <select id="findLinuxUserById" resultType="linuxUser">
+    	select * from linux_user where id=#{id}
+    </select>
+    <!-- 添加linux用户信息 -->
+    <insert id="doAddLinuxUser" parameterType="linuxUser">
+    	insert into linux_user(id,username,password,ip,port,protocol,flag,anothername,createdUser,modifiedUser,createdTime,modifiedTime) values(null,#{username},#{password},#{ip},#{port},#{protocol},#{flag},#{anothername},#{createdUser},#{modifiedUser},#{createdTime},#{modifiedTime}) 
+    </insert>
+    <!-- 修改linux用户信息 -->
+    <update id="doUpdateLinuxUser" parameterType="linuxUser">
+      update linux_user
+         set
+           anothername=#{anothername},
+           username=#{username},
+           password=#{password},
+           ip=#{ip},
+           protocol=#{protocol},
+           flag=#{flag}
+           where id=#{id}
+    </update>
+    <!-- 判断密码是否正确 -->
+    <select id="identifyPassword" resultType="linuxUser">
+    	select * from linux_user where username=#{username}
+    </select>
+    <!-- 根据id删除linux服务器的信息 -->
+    <delete id="doDelLinuxUser">
+    	delete from linux_user where id=#{id}
+    </delete>
+</mapper>
+
+
+

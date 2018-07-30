@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<body>
+    <!-- 中部开始 -->
+        <!-- 右侧主体开始 -->
+          <div class="content" style="overflow-y: hidden;margin:0 auto;width:400px;height:100px;">
+            <!-- 右侧内容框架，更改从这里开始 -->
+            <div class="layui-form">
+                <div class="layui-form-item">
+                    <label for="L_email" class="layui-form-label">
+                        <span class="x-red">*</span>帐号名
+                    </label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="update_anothername" name="email" required="" lay-verify="email"
+                        autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label for="L_username" class="layui-form-label">
+                        <span class="x-red">*</span>用户名
+                    </label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="update_username" required="" lay-verify="nikename"
+                        autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label for="L_pass" class="layui-form-label">
+                        <span class="x-red">*</span>密码
+                    </label>
+                    <div class="layui-input-inline">
+                        <input type="password" id="update_password1" required="" lay-verify="pass"
+                        autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                  <label for="L_pass" class="layui-form-label">
+                        <span class="x-red">*</span>ip
+                    </label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="update_ip" required="" lay-verify="repass"
+                        autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                  <label for="L_pass" class="layui-form-label">
+                        <span class="x-red">*</span>端口号
+                    </label>
+                    <div class="layui-input-inline">
+                    	 <input type="text" id="update_port" required="" lay-verify="repass"
+                        autocomplete="off" class="layui-input"></input>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                  <label for="L_pass" class="layui-form-label">
+                        <span class="x-red">*</span>协议
+                    </label>
+                    <div class="layui-input-inline">
+                    	 <input type="text" id="update_protocol" required="" lay-verify="repass"
+                        autocomplete="off" class="layui-input"></input>
+                    </div>
+                </div>
+                <span class="layui-form-item">
+                    <label for="L_repass" class="layui-form-label">
+                    </label>
+                    <button  class="layui-btn" id="update_btn_confirm">
+                        确定
+                    </button>
+                               <button  class="layui-btn" id="update_btn_cancel">
+                        取消
+                    </button>
+                </span>
+            </div>
+            <!-- 右侧内容框架，更改从这里结束 -->
+          </div>
+        <!-- 右侧主体结束 -->
+    <!-- 中部结束 -->
+<script type="text/javascript">
+$(function(){
+	// 初始化表格数据
+	doInitTable();
+	// 给确定按钮添加点击事件
+	$("#update_btn_confirm").click(function(){
+		doUpdateLinuxServer();
+	})
+	// 给取消按钮添加点击事件
+	$("#update_btn_cancel").click(function(){
+		doCancel();
+	})
+})
+/* 点击取消按钮执行该方法  */
+function doCancel(){
+	// 跳转到服务器页面
+	$(".page-content").load("linuxList.do",function(){});
+}
+/* 初始化表格数据 */
+function doInitTable(){
+	// 获取linux服务器信息
+	var linuxServer = $(".page-content").data("linux");
+	// 初始化
+	$("#update_anothername").val(linuxServer.anothername);
+	$("#update_username").val(linuxServer.username);
+	$("#update_password1").val(linuxServer.password);
+	$("#update_ip").val(linuxServer.ip);
+	$("#update_port").val(linuxServer.port);
+	$("#update_protocol").val(linuxServer.protocol);
+}
+/* 保存修改数据  */
+function doUpdateLinuxServer(){
+	// 获取表格中的数据
+	var id = $(".page-content").data("linux").id;
+	var anothername = $("#update_anothername").val();
+	var username = $("#update_username").val();
+	var password = $("#update_password1").val();
+	var ip = $("#update_ip").val();
+	var port = $("#update_port").val();
+	var protocol = $("#update_protocol").val();
+	if(anothername==null||username==null||password==null||ip==null){
+		alert("请将资料填写完整");
+	}else{
+		// 添加到数据库
+		var params = {
+				"id":id,
+				"anothername":anothername,
+				"username":username,
+				"password":password,
+				"ip":ip,
+				"port":port,
+				"protocol":protocol
+		}
+		var url = "linuxServerManage/doUpdateLinuxUser.do";
+		$.post(url,params,function(result){
+			console.log(result.message);
+			if(result.state==1){
+				alert("修改成功");
+				// 跳转到服务器列表页面
+				$(".page-content").load("linuxList.do",function(){});
+			}else{
+				alert(result.message);
+			}
+		})
+	}
+}
+</script>
+</body>
+</html>

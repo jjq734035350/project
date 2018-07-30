@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<body>
+    <!-- 中部开始 -->
+        <!-- 右侧主体开始 -->
+        <div class="page-content" style="overflow-y: hidden;margin:0 auto;width:1000px;height:150px;">
+          <div class="content" style="overflow-y: hidden;margin:0 auto;width:400px;height:100px;">
+            <!-- 右侧内容框架，更改从这里开始 -->
+            <form class="layui-form">
+                <div class="layui-form-item">
+                    <label for="L_email" class="layui-form-label">
+                        <span class="x-red">*</span>帐号名
+                    </label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="anothername" name="email" required="" lay-verify="email"
+                        autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label for="L_username" class="layui-form-label">
+                        <span>*</span>用户名
+                    </label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="username" required="" lay-verify="nikename"
+                        autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label for="L_pass" class="layui-form-label">
+                        <span class="x-red">*</span>密码
+                    </label>
+                    <div class="layui-input-inline">
+                        <input type="password" id="password" required="" lay-verify="pass"
+                        autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                  <label for="L_pass" class="layui-form-label">
+                        <span class="x-red">*</span>ip
+                    </label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="ip" required="" lay-verify="repass"
+                        autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                  <label for="L_pass" class="layui-form-label">
+                        <span class="x-red">*</span>端口号
+                    </label>
+                    <div class="layui-input-inline">
+                    	 <input type="text" id="port" required="" lay-verify="repass"
+                        autocomplete="off" class="layui-input"></input>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                  <label for="L_pass" class="layui-form-label">
+                        <span class="x-red">*</span>协议
+                    </label>
+                    <div class="layui-input-inline">
+                    	 <input type="text" id="protocol" required="" lay-verify="repass"
+                        autocomplete="off" class="layui-input"></input>
+                    </div>
+                </div>
+                <span class="layui-form-item">
+                    <label for="L_repass" class="layui-form-label">
+                    </label>
+                    <button  class="layui-btn" id="btn_confirm">
+                        增加
+                    </button>
+                               <button  class="layui-btn" id="btn_cancel">
+                        取消
+                    </button>
+                </span>
+            </form>
+            <!-- 右侧内容框架，更改从这里结束 -->
+          </div>
+        </div>
+        <!-- 右侧主体结束 -->
+    <!-- 中部结束 -->
+<script type="text/javascript">
+$(function(){
+	$("#protocol").val("SFTP");
+	$("#port").val(22);
+	// 给确定按钮添加点击事件
+	$("#btn_confirm").click(function(){
+		// 添加服务器信息到数据库
+		doAddLinuxUser();
+	})
+	// 给取消按钮添加点击事件
+	$("#btn_cancel").click(function(){
+		doCancel();
+	})
+})
+// 添加服务器信息到数据库
+function doAddLinuxUser(){
+	// 获取各输入框信息
+	var anothername = $("#anothername").val();
+	var username = $("#username").val();
+	var password = $("#password").val();
+	var ip = $("#ip").val();
+	var port = $("#port").val();
+	var protocol = $("#protocol").val();
+	var createdTime = getCurrentTime();
+	if(anothername==null||username==null||password==null||ip==null){
+		alert("请填写完整资料");
+	}else{
+		// 添加到数据库
+		var params = {
+				"anothername":anothername,
+				"username":username,
+				"password":password,
+				"ip":ip,
+				"port":port,
+				"protocol":protocol,
+				"createdTime":createdTime
+		}
+		var url = "linuxServerManage/doAddLinuxUser.do";
+		$.post(url,params,function(result){
+			console.log(result.message);
+			if(result.state==1){
+				alert(result.message);
+			}else{
+				alert(result.message);
+			}
+		})
+	}
+}
+/* 获取当前时间 */
+function getCurrentTime(){
+	var nowtime = new Date();
+    var year = nowtime.getFullYear();
+    var month = nowtime.getMonth() + 1;
+    var day = nowtime.getDate();
+    var hour = nowtime.getHours();
+    var minute = nowtime.getMinutes();
+    var second =nowtime.getSeconds();
+    return year + "/" + month + "/" + day + " " + hour + ":" + minute + ":" + second;
+}
+function doCancel(){
+	// 跳转页面
+	location.href="indexUI.do";
+}
+</script>
+</body>
+</html>

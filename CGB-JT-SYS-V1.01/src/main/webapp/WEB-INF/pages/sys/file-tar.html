@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<style type="text/css">
+		.layui-layer-wrap{border:0px solid #cccccc;padding:5px;width:220px;
+		min-height:200px; /*高度最小值设置为：100px*/
+		height:auto !important; /*兼容FF,IE7也支持 !important标签*/
+		height:100px; /*兼容ie6*/
+		}
+	</style>
+</head>
+    <div class="layui-form" style="width:800px;overflow-y:hidden;overflow-x:auto;white-space:nowrap">
+        <div class="layui-form-item" style="display:inline-block;width:750px;">
+	       	 服务器：<span id="server" style="display:inline-block;width:150px;"></span>
+	   		当前路径：/home/<span id="delete_presentDir" style="display:inline-block;width:130px"></span>
+	                   压缩包生成路径：<input id="delete_saveDir" style="display:inline-block;border-style:none;width:130px;background-color:transparent"></input>
+        </div>
+    </div>
+      <div>
+    	<h1 style="font-size:20px;">请选择本次新增的介质</h1>
+    </div>
+    <div class="layui-layer-content" style="width:750px;height:400px;border:1px solid:green;">
+		<div style="padding: 10px;" class="layui-layer-wrap">
+			<ul id="menuTree" class="ztree"></ul>    <!-- 动态加载树 -->
+		</div>
+	</div>
+	<div id="bottom">
+		  <span class="layui-form-item" style="display:inline-block;width:730px;text-align:center">
+                    <label for="L_repass" class="layui-form-label">
+                    </label>
+                    <button  class="layui-btn" id="add_btn_return">
+                        上一步
+                    </button>
+                               <button  class="layui-btn" id="add_btn_confirm">
+                        确认
+                    </button>
+                </span>
+	</div>
+	<link rel="stylesheet" href="bower_components/ztree/css/zTreeStyle/zTreeStyle.css" type="text/css">
+  <script type="text/javascript" src="bower_components/ztree/jquery.ztree.all.min.js"></script>
+  <script type="text/javascript" src="bower_components/layer/layer.js"></script>
+  <script>
+    var ztree;
+	var setting = {
+		 view : {
+			fontCss : getFont,
+			nameIsHTML : true
+		 },
+		data:{
+			simpleData:{
+				enable:true,
+				"id":"filePath",
+				"pId":"parentPath",
+				"rootPId":null
+			}
+		},
+   	check:{
+   		enable:true,	//设置是否显示复选框
+   		autoCheckTrigger: true,
+   		chkboxType:{"Y":"","N":""}
+   	},
+    callback: {  
+    	beforeExpand : function(treeId, treeNode){
+    		if(treeNode.isParent){
+	    		var url = "showZTree/zTreeUI.do";
+	    		var params = {
+	    			"parentPath":treeNode.filePath	
+	    		}
+	    		$.post(url,params,function(result){
+	    			if(result.state==1){
+	    				var data = result.data;
+	    				// 将数据转换成javascript对象
+	    				var jsondata = eval(data);
+	    				console.log(jsondata);
+	    				if(jsondata==null||jsondata==""){
+	    				}else if(!treeNode.zAsync){
+	    					treeNode.zAsync = true;
+	    					var treeObj = $.fn.zTree.getZTreeObj("menuTree");
+	    					// 获取树上的父节点
+	    					var parentNode = treeObj.getNodeByParam("filePath",treeNode.filePath, null);
+	    				    // 将子节点添加到父节点上
+	                        newNode = treeObj.addNodes(parentNode,jsondata, false);
+	    				}
+	    			}
+	    		});
+    	 }else{
+    		 }
+    	 }
+    } 
+	};
+	function getFont(treeId,node){
+		return	node.font={
+			"color":"white",
+		};
+    }
+    $(function(){
+    	// 初始化页面
+    	doInitPage();
+    	// 加载树
+    	doLoadTree();
+    	// 给确认和上一步按钮添加点击事件
+    	$("#bottom")
+    	.on("click","#add_btn_confirm",doConfirm)
+    	.on("click","#add_btn_return",doReturn);
+    })
+    // 初始化页面
+    function doInitPage(){
+    	// 获取初始化内容
+    	var data = $(".page-content").data("linuxConecting");
+    	 $("#server").html(data.ip);
+    	$("#delete_presentDir").html(data.username);
+    	$("#delete_saveDir").val("/home/"+data.username); 
+    }
+    // 加载树
+     function doLoadTree(){
+    	// 获取当前路径
+    	var parentPath = "/home/"+$("#delete_presentDir").html();
+    	var params = {
+    		parentPath:parentPath
+    	}
+    	var url = "showZTree/zTreeUI.do";
+		$.post(url,params,function(result){
+			if(result.state==1){
+				console.log(result.data);
+				doInitTree(result.data);
+			}
+		})
+    }
+    /* 设置文件存储路径 */
+    function doSetFileSavePath(){
+    	// 获取存储路径
+    	var fileSavePath = $("#delete_saveDir").val();
+    	$(".page-content").data("fileSavePath",fileSavePath);
+    	console.log(fileSavePath);
+    	var url = "linux/setFileSavePath.do";
+    	var params = {
+    			fileSavePath:fileSavePath
+    	}
+    	$.post(url,params,function(result){
+    		if(result.state==1){
+    			console.log("文件存放路径设置完成");
+    		}
+    	})
+    }
+	// 初始化树
+ 	function doInitTree(data){
+	 $("#menuLayer").css("display","block");
+			 ztree=$.fn.zTree.init(
+			 		   $("#menuTree"),setting,data);
+	}
+	/* 点击返回按钮时执行  */
+	function doReturn(){
+		// 跳转页面
+		location.href="indexUI.do";
+	}
+	/* 点击确认按钮时执行 */
+	function doConfirm(){
+    	// 设置文件存储路径
+    	doSetFileSavePath();
+		// 获取选中的文件
+		var selectNode = ztree.getChangeCheckedNodes(true);
+		$(".page-content").data("selectNode",selectNode);
+	   	  $.ajax({
+			url : "linux/returnData.do",	//请求url
+			type : "POST",	//请求类型  post|get
+			contentType: 'application/json',
+			data: JSON.stringify(selectNode),
+			dataType : "json",  //返回数据的 类型 text|json|html--
+			success : function(result){	//回调函数 和 后台返回的 数据
+				if(result.state==1){
+					layer.confirm(
+						"<pre>"+result.data+"</pre>",
+						{
+							title:"请确认本次打包新增内容",
+							area:['300px','250px'],
+							btn: ['确认','返回'], //按钮
+							yes:function(){
+								parent.layer.closeAll();
+								fileTar();
+							},
+							cancel:function(){
+								console.log("不回到");
+							}
+						}
+						);
+				}else{
+					alert(result.message);
+				}
+			}
+		});   
+		
+	}
+	// 跳转确认页面
+	function addFilesConfirm(){
+		var url = "addFilesConfirm.do";
+		$.getJSON(url,function(){})
+	}
+	/* 开始打包 */
+	function fileTar(){
+		var selectNode = $(".page-content").data("selectNode");
+		console.log(selectNode);
+		$.ajax({
+			url : "linux/fileTar.do",	//请求url
+			type : "POST",	//请求类型  post|get
+			contentType: 'application/json',
+			data: JSON.stringify(selectNode),
+			dataType : "json",  //返回数据的 类型 text|json|html--
+			success : function(result){	//回调函数 和 后台返回的 数据
+				console.log(result.state);
+				if(result.state==1){
+					// 跳转到选择替换文件的页面
+					$(".page-content").load("fileReplace.do");
+				}else{
+					alert(result.message);
+				}
+			}
+		});   
+	}
+    </script>
+</html>

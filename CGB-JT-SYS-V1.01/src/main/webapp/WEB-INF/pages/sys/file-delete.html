@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<style type="text/css">
+		.layui-layer-wrap{border:0px solid #cccccc;padding:5px;width:220px;
+		min-height:200px; /*高度最小值设置为：100px*/
+		height:auto !important; /*兼容FF,IE7也支持 !important标签*/
+		height:100px; /*兼容ie6*/
+		}
+	</style>
+</head>
+    <div class="layui-form" style="width:800px;overflow-y:hidden;overflow-x:auto;white-space:nowrap;">
+        <div class="layui-form-item" style="display:inline-block;width:750px;">
+       	 服务器：<span id="server" style="display:inline-block;width:150px;"></span>
+   		当前路径：/home/<span id="delete_presentDir" style="display:inline-block;width:130px"></span>
+                   压缩包生成路径：<input id="delete_saveDir" style="display:inline-block;border-style:none;width:130px;background-color:transparent"></input>
+        </div>
+    </div>
+      <div>
+    	<h1 style="font-size:20px;>请选择本次需要删除的介质</h1>
+    </div>
+    <div class="layui-layer-content" style="width:750px;height:250px;border:1px solid:black;">
+		<div style="padding: 10px" class="layui-layer-wrap">
+			<ul id="menuTree" class="ztree"></ul>    <!-- 动态加载树 -->
+		</div>
+	</div>
+	<div>
+		<div style="margin-bottom:100px;">
+			<h1 style="font-size:20px">请输入本次需要删除的介质</h1>
+			<input type="text" id="deleteFilePath" placeholder="多个目录用空格隔开" style="width:600px;height:30px;color:black"/>
+			<button type="button" class="layui-btn" id="reset">重置</button>
+		</div>
+	</div>
+	<div id="bottom">
+		  <span class="layui-form-item" style="display:inline-block;width:730px;text-align:center">
+                    <label for="L_repass" class="layui-form-label">
+                    </label>
+                    <button  class="layui-btn" id="delete_btn_return">
+                        上一步
+                    </button>
+                               <button  class="layui-btn" id="delete_btn_confirm">
+                        下一步
+                    </button>
+                </span>
+	</div>
+	<link rel="stylesheet" href="bower_components/ztree/css/zTreeStyle/zTreeStyle.css" type="text/css">
+  <script type="text/javascript" src="bower_components/ztree/jquery.ztree.all.min.js"></script>
+  <script type="text/javascript" src="bower_components/layer/layer.js"></script>
+  <script>
+    var ztree;
+	var setting = {
+		 view : {
+			fontCss : getFont,
+			nameIsHTML : true
+		 },
+		data:{
+			simpleData:{
+				enable:true,
+				idKey:"filePath",
+				pIdKey:"parentPath",
+				rootPId:"/home/"+$(".page-content").data("linuxConecting").username
+			}
+		},
+   	check:{
+   		enable:true,	//设置是否显示复选框
+   		autoCheckTrigger: true,
+   		chkboxType:{"Y":"","N":""}
+   	},
+    callback: {  
+    	beforeExpand : function(treeId, treeNode){
+    		if(treeNode.isParent){
+	    		var url = "showZTree/zTreeUI.do";
+	    		var params = {
+	    			"parentPath":treeNode.filePath	
+	    		}
+	    		$.post(url,params,function(result){
+	    			if(result.state==1){
+	    				var data = result.data;
+	    				// 将数据转换成javascript对象
+	    				var jsondata = eval(data);
+	    				console.log(jsondata);
+	    				if(jsondata==null||jsondata==""){
+	    				}else if(!treeNode.zAsync){
+	    					treeNode.zAsync = true;
+	    					var treeObj = $.fn.zTree.getZTreeObj("menuTree");
+	    					// 获取树上的父节点
+	    					var parentNode = treeObj.getNodeByParam("filePath",treeNode.filePath, null);
+	    				    // 将子节点添加到父节点上
+	                        newNode = treeObj.addNodes(parentNode,jsondata, false);
+	    				}
+	    			}
+	    		});
+    	 }else{
+    		 }
+    	 }
+    } 
+	};
+	function getFont(treeId,node){
+		return	node.font={
+			"color":"white",
+		};
+    }
+    $(function(){
+    	// 初始化页面
+    	doInitPage();
+    	// 设置文件存储路径
+    	doSetFileSavePath();
+    	// 加载树
+    	doLoadTree();
+    	// 给重置按钮添加点击事件
+    	$("#reset").click(function(){
+    		$("#deleteFilePath").val("");
+    	})
+    	// 给确认和上一步按钮添加点击事件
+    	$("#bottom")
+    	.on("click","#delete_btn_confirm",doNext)
+    	.on("click","#delete_btn_return",doReturn);
+    })
+    // 初始化页面
+    function doInitPage(){
+    	// 获取初始化内容
+    	var data = $(".page-content").data("linuxConecting");
+    	 $("#server").html(data.ip);
+    	$("#delete_presentDir").html(data.username);
+    	$("#delete_saveDir").val($(".page-content").data("fileSavePath")); 
+    }
+    // 加载树
+     function doLoadTree(){
+    	// 获取当前路径
+    	var parentPath = "/home/"+$("#delete_presentDir").html();
+    	var params = {
+    		parentPath:parentPath
+    	}
+    	var url = "showZTree/zTreeUI.do";
+		$.post(url,params,function(result){
+			if(result.state==1){
+				console.log(result.data);
+				doInitTree(result.data);
+			}
+		})
+    }
+	// 初始化树
+ 	function doInitTree(data){
+	 $("#menuLayer").css("display","block");
+			 ztree=$.fn.zTree.init(
+			 		   $("#menuTree"),setting,data);
+	}
+	/* 点击返回按钮时执行  */
+	function doReturn(){
+		// 返回主页
+		$(".page-content").load("fileReplace.do",function(){})
+	}
+	/* 点击确认按钮时执行 */
+	function doNext(){
+		// 获取选中的文件
+		var selectNode = ztree.getChangeCheckedNodes(true);
+		$(".page-content").data("selectNode",selectNode);
+		// 获取输入框中的值
+		var deleteFilePath = $("#deleteFilePath").val();
+		if(selectNode!=""&&deleteFilePath!=""){
+			alert("只能选择一个");
+		}else if(deleteFilePath==""){
+			// 勾选节点方式打包
+			  $.ajax({
+					url : "linux/returnData.do",	//请求url
+					type : "POST",	//请求类型  post|get
+					contentType: 'application/json',
+					data: JSON.stringify(selectNode),
+					dataType : "json",  //返回数据的 类型 text|json|html--
+					success : function(result){	//回调函数 和 后台返回的 数据
+						if(result.state==1){
+							layer.confirm(
+								"<pre>"+result.data+"</pre>",
+								{
+									title:"请确认本次要删除的介质",
+									area:['300px','250px'],
+									btn: ['确认','返回'], //按钮
+									yes:function(){
+										parent.layer.closeAll();
+										fileDelete();
+									},
+									cancel:function(){
+									}
+								}
+								);
+						}else{
+							alert(result.message);
+						}
+					}
+				});  
+		}else{
+			// 输入框模式
+			layer.confirm(
+					"<pre>"+$("#deleteFilePath").val()+"</pre>",
+					{
+						title:"请确认本次要删除的介质",
+						area:['300px','250px'],
+						btn: ['确认','返回'], //按钮
+						yes:function(){
+							parent.layer.closeAll();
+							fileInputDelete();
+						},
+						cancel:function(){
+						}
+					}
+					);
+		}
+	}
+	function fileInputDelete(){
+		// 输入框模式打包
+		var url = "linux/doDeleteFile.do";
+		// 获取输入框的值
+		var deleteFilePath = $("#deleteFilePath").val();
+		var params = {
+				deleteFilePath:deleteFilePath
+		}
+		$.post(url,params,function(result){
+			if(result.state==1){
+				alert("删除成功");
+				// 跳转到服务器页面
+				$(".page-content").load("linuxList.do",function(){});
+			}
+		})
+	}
+	/* 开始打包 */
+	function fileDelete(){
+			var selectNode = $(".page-content").data("selectNode");
+			$.ajax({
+				url : "linux/fileDeleteTar.do",	//请求url
+				type : "POST",	//请求类型  post|get
+				contentType: 'application/json',
+				data: JSON.stringify(selectNode),
+				dataType : "json",  //返回数据的 类型 text|json|html--
+				success : function(result){	//回调函数 和 后台返回的 数据
+					console.log(result.state);
+					if(result.state==1){
+						alert("删除成功");
+						// 跳转页面
+						location.href="indexUI.do";
+					}else{
+						alert(result.message);
+					}
+				}
+			});   
+	}
+    </script>
+</html>

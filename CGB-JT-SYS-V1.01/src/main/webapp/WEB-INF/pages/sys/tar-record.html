@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<body>
+        <!-- 右侧主体开始 -->
+          <div class="content">
+            <!-- 右侧内容框架，更改从这里开始 -->
+            <div class="layui-form xbs" action="" >
+                <div class="layui-form-pane" style="text-align: center;">
+                  <div class="layui-form-item" style="display: inline-block;">
+                    <label class="layui-form-label xbs768">日期范围</label>
+                    <div class="layui-input-inline xbs768">
+                      <input class="layui-input" placeholder="例如:1999/01/01 00:00:00" id="LAY_demorange_s">
+                    </div>
+                    <div class="layui-input-inline xbs768">
+                      <input class="layui-input" placeholder="例如:1999/01/01 00:00:00" id="LAY_demorange_e">
+                    </div>
+                    <div class="layui-input-inline" style="width:80px">
+                        <button class="layui-btn"  id="search" lay-submit="" lay-filter="sreach"><i class="layui-icon">&#xe615;</i></button>
+                    </div>
+                  </div>
+                </div> 
+            </div>
+            <table class="layui-table">
+                <thead>
+                    <tr>
+                        <th>
+                            id
+                        </th>
+                        <th>
+                            打包日期
+                        </th>
+                        <th>
+                            新增文件tar包
+                        </th>
+                        <th>
+                            替换文件tar包
+                        </th>
+                        <th>
+           deletelist.txt文件
+                        </th>
+                        <th>
+                            生成文件路径
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="record_table">
+                </tbody>
+            </table>
+            <!-- 右侧内容框架，更改从这里结束 -->
+            <!-- 引入分页 -->
+            <div id="pageId">
+            </div>
+          </div>
+        <!-- 右侧主体结束 -->
+    </div>
+    <!-- 中部结束 -->
+    <!-- 页面动态效果 -->
+    <script>
+    	// 列举所有记录
+    	$(function(){
+    		// 加载分页底部
+    		$("#pageId").load("pageUI.do");
+    		// 页面加载完成，加载页面信息
+    		doGetObjects();
+    		// 给查询按钮添加点击事件
+    		$("#search").click(function(){
+    			doSearch();
+    		})
+    	})
+    	function doGetObjects(){
+    		var url="tarRecord/findPageRecords.do";
+    		var pageCurrent=
+    			$(".black-red").data("pageCurrent");
+    		if(!pageCurrent)pageCurrent=1;
+    		var params={"pageCurrent":pageCurrent};
+    		$.getJSON(url,params,function(result){//JsonResult
+    			if(result.state==1){
+    				console.log(result.data);
+    			 //将服务端返回的数据添填充在表格中
+    			  setInitTable(result.data.records);
+    			 //设置分页信息
+    			 setPagination(result.data); 
+    			}else{
+    			  alert(result.message);
+    			}
+    		});
+    	}
+    	/* 查找 */
+    	function doSearch(){
+    		// 获取日期框中的值
+    		var date_start = $("#LAY_demorange_s").val();
+    		var date_end = $("#LAY_demorange_e").val();
+    		console.log(date_start);
+    		var url = "tarRecord/doSearchPageRecords.do";
+    		var params = {
+    				startTime:date_start,
+    				endTime:date_end
+    		}
+    		 $.post(url,params,function(result){
+    			if(result.state==1){
+    				// setPagination(result.data);
+    				setInitTable(result.data);
+    			}else{
+    				alert(result.message);
+    			}
+    		}) 
+    	}
+    	// 初始化表格
+    	function setInitTable(data){
+    		  //1.获取tbody对象，并清空内容
+    		  var tBody=$("#record_table");
+    		  tBody.empty();
+    		// 遍历数据
+    		for(i in data){
+	    		// 创建每一行
+	    		var tr = $("<tr></tr>");
+    			var tds = "<td>"+data[i].id+"</td>"+
+    					  "<td>"+data[i].tarTime+"</td>"+
+    					  "<td><a class='add_tar' style='cursor:pointer'>"+data[i].addFilesName+"</a></td>"+
+    					  "<td><a class='replace_tar' style='cursor:pointer'>"+data[i].updateFilesName+"</a></td>"+
+    					  "<td><a class='delete_txt' style='cursor:pointer'>delete.txt</a></td>"+
+    					  "<td>"+data[i].filePath+"</td>";
+    			// 将每一列内容添加到行下面
+    			tr.append(tds);
+	    		// 将每一行添加到表格下
+	    		tBody.append(tr);
+    		}
+    		  $(".add_tar").click(function(e){
+    			  // 获取鼠标点击的id值
+    			 var id = $(e.target).parents("tr").children("td:nth-child(1)").text();
+    			  console.log(id);
+    			 doListFiles(id,1);
+    		  })
+    		  $(".replace_tar").click(function(e){
+    			 var id = $(e.target).parents("tr").children("td:nth-child(1)").text();
+    			 doListFiles(id,2);
+    		  })
+    		  $(".delete_txt").click(function(e){
+    			 var id = $(e.target).parents("tr").children("td:nth-child(1)").text();
+    			 doListFiles(id,3);
+    		  })
+    	}
+    	function doListFiles(id,flag){
+    		console.log(id);
+    		// 根据id获取记录值
+    		 var url = "linux/doListFiles.do";
+		   var params = {
+				   "id":id
+		   }
+	   $.post(url,params,function(result){
+		   var content = "";
+		   if(result.state==1){
+		  	   if(flag==1){
+			   // 定义一个变量记录要显示的内容
+		  		   // 如果是点击的add.tar
+		  		   // 提示add.tar的内容
+			   	   content = result.data.addContent;
+		  	   }else if(flag==2){
+		  		   // 如果点击的是update.tar
+		  		   content = result.data.updateContent;
+		  	   }else{
+		  		   // 如果点击的是delete.txt
+		  		   content = result.data.deleteFile;
+		  	   }
+		  		layer.confirm(
+						"<pre>"+content+"</pre>",
+						{
+							area:['300px','250px'],
+							btn: ['确认','返回'], //按钮
+							yes:function(){
+								parent.layer.closeAll();
+							},
+							cancel:function(){
+								console.log("");
+							}
+						}
+						);
+		   }else{
+			   alert(result.message);
+		   }
+	   })
+    	}
+        </script>
+</body>
+</html>

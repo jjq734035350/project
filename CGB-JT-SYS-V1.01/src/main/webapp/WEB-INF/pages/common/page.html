@@ -1,0 +1,46 @@
+<div class="black-red"  style="text-align:right;padding-top:10px;padding-bottom:10px;background-color:#281400;">
+	<a class="first">首页</a>
+	<a class="pre">上一页</a>
+	<a class="next">下一页</a>
+	<a class="last">尾页</a>
+	<span class="rowCount">总记录数(0)</span>
+	<span class="pageCount">总页数(0)</span>
+	<span class="pageCurrent">当前页(1)</span>
+</div>
+<script>
+	$(".black-red")
+	.on("click",".first,.pre,.next,.last",doJumpToPage);
+	// 设置分页
+	function setPagination(data){
+		// 初始化总页数
+		$(".pageCount").html("总页数("+data.pageCount+")");
+		// 初始化总记录数
+		$(".rowCount").html("总记录数("+data.rowCount+")");
+		// 初始化当前页码
+		$(".pageCurrent").html("当前页("+data.pageCurrent+")");
+		// 绑定数据
+		$(".black-red").data("pageCurrent",data.pageCurrent);
+		$(".black-red").data("pageCount",data.pageCount);
+	}
+	// 翻页
+	function doJumpToPage(){
+		// 获取当前页码以及总页数
+		var pageCurrent = $(".black-red").data("pageCurrent");
+		var pageCount = $(".black-red").data("pageCount");
+		// 根据点击的对象执行pageCurrent操作
+		var cls = $(this).prop("class");
+		if(cls=="pre"&&pageCurrent>1){
+			   pageCurrent--;
+		   }else if(cls=="next"&&pageCurrent<pageCount){
+			   pageCurrent++;
+		   }else if(cls=="first"){
+			   pageCurrent=1;
+		   }else if(cls=="last"){
+			   pageCurrent=pageCount;
+		   }
+		   //3.保存当前pageCurrent的值
+		   $(".black-red").data("pageCurrent",pageCurrent);
+		   //4.按指定页码重新执行查询
+		   doGetObjects();
+	}
+</script>
